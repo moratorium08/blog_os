@@ -4,8 +4,12 @@
 #![no_main]
 
 extern crate bootloader_precompiled;
+extern crate spin;
 extern crate volatile;
+#[macro_use]
+extern crate lazy_static;
 
+#[macro_use]
 mod vga_buffer;
 
 use core::panic::PanicInfo;
@@ -16,7 +20,8 @@ static HELLO: &[u8] = b"Hello World!";
 
 #[panic_implementation]
 #[no_mangle]
-pub fn panic(_info: &PanicInfo) -> ! {
+pub fn panic(info: &PanicInfo) -> ! {
+    println!("{}", info);
     loop {}
 }
 
@@ -28,12 +33,9 @@ pub extern "C" fn _start() -> ! {
         color_code: ColorCode::new(Color::Yellow, Color::Black),
         buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
     };
-    writer.write_byte(b'H');
-    writer.write_string("ello ");
-    writer.write_string("Wörld!");
-    write!(writer, "The numebrs {}, {}", 42, 1.0 / 3.0).unwrap();
-    writeln!(writer, "hoge");
-    writeln!(writer, "fuga");
+    vga_buffer::WRITER.lock().write_str("Hello again").unwrap();
+    println!("Hello World{}", "!");
+    panic!("hoge");
 
     loop {}
 }
