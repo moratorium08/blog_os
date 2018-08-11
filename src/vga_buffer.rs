@@ -3,6 +3,7 @@ use core::fmt;
 use spin::Mutex;
 use volatile::Volatile;
 
+
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
@@ -124,10 +125,12 @@ impl Writer {
     }
 }
 
+#[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => ($crate::vga_buffer::print(format_args!($($arg)*)));
 }
 
+#[macro_export]
 macro_rules! println {
     () => (print!("\n"));
     ($arg:expr) => (print!(concat!($arg, "\n")));

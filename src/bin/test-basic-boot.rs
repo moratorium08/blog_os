@@ -13,16 +13,17 @@ use mora_os::exit_qemu;
 #[cfg(not(test))]
 #[panic_implementation]
 #[no_mangle]
-pub fn panic(info: &PanicInfo) -> ! {
-    println!("{}", info);
+pub fn panic(_info: &PanicInfo) -> ! {
+    println_serial!("failed");
+
+    unsafe { exit_qemu(); }
     loop {}
 }
 
 #[cfg(not(test))]
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    println!("Hello World{}", "!");
-    println_serial!("Hello Serial: {}", 1);
+    println_serial!("ok");
 
     unsafe { exit_qemu(); }
     loop {}
