@@ -21,7 +21,6 @@ use mora_os::exit_qemu;
 lazy_static! {
     static ref IDT: InterruptDescriptorTable = {
         let mut idt = InterruptDescriptorTable::new();
-        idt.breakpoint.set_handler_fn(breakpoint_handler);
         unsafe {
             idt.double_fault.set_handler_fn(double_fault_handler)
             .set_stack_index(mora_os::gdt::DOUBLE_FAULT_IST_INDEX);
@@ -34,14 +33,10 @@ pub fn init_idt() {
     IDT.load();
 }
 
-extern "x86-interrupt" fn breakpoint_handler (stack_frame: &mut ExceptionStackFrame) {
-    println!("Exception: Breakpoint\n{:#?}", stack_frame);
-}
-
 extern "x86-interrupt" fn double_fault_handler (stack_frame: &mut ExceptionStackFrame,
                                                 _error_code: u64) {
-    println!("Exception: Double Fault\n{:#?}", stack_frame);
-    loop {}
+    println_serial!("ok");
+    unsafe { exit_qemu(); }
 }
 
 #[cfg(not(test))]
@@ -55,16 +50,14 @@ pub fn panic(info: &PanicInfo) -> ! {
 #[cfg(not(test))]
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    println!("Hello World{}", "!");
-    println_serial!("Hello Serial: {}", 1);
     mora_os::gdt::init();
     init_idt();
+
     fn stack_overflow() {
         stack_overflow(); // for each recursion, the return address is pushed
     }
 
     stack_overflow();
-
     unsafe { exit_qemu(); }
     loop {}
 }
